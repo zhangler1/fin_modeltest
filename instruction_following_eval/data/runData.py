@@ -16,23 +16,22 @@ jsonls=[]
 with open('input_data.jsonl', 'r') as file:
     for line in tqdm(file,desc="load lines :"):
         data = json.loads(line)  # 解析JSON
-        print(data)
         jsonls.append(data)
 
+
 jsonlsResponse=[]
-for json in tqdm(iter(jsonls),gui=True,desc="generating response ...:"):
-    prompt=json["prompt"]
-    response=chatWithModel(model_name, '你是一个问答助手', prompt)
+for res in tqdm(iter(jsonls),desc="generating response ..."):
+    prompt=res["prompt"]
+    response=chatWithModel(model_name, 'you are a helpful assistant', prompt)
     json_res={"prompt": f"{prompt}",
           "response": f"{response}"}
 
     jsonlsResponse.append(json_res)
 
-with open(f"input_response_data_f{model_name}_f{formatted_datetime}.jsonl","w")as f:
-    for jsonlsResponse in tqdm(iter(jsonlsResponse),desc="writing response ...:"):
+with open(f"input_response_data_{model_name}_{formatted_datetime}.jsonl","a")as f:
+    for jsonlsResponse in tqdm(jsonlsResponse,desc="writing response ...:"):
         json_line = json.dumps(jsonlsResponse)  # 将字典转换为JSON字符串
-        file.write(json_line)
-    f.close()
+        f.write(json_line)
     print("if测评结束")
 
 
