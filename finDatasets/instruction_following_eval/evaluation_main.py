@@ -25,8 +25,7 @@ from absl import app
 from absl import flags
 from absl import logging
 
-from instruction_following_eval import instructions_registry
-
+from finDatasets.instruction_following_eval import instructions_registry
 
 _INPUT_DATA = flags.DEFINE_string(
     "input_data", None, "path to input data", required=True
