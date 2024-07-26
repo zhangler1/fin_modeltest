@@ -15,7 +15,7 @@ from chatWithModels.chat import chatWithModel
 jsonls=[]
 with open('input_data.jsonl', 'r') as file:
     for line in tqdm(file,desc="load lines :"):
-        data = json.loads(line)  # 解析JSON
+        data = json.loads(line.strip())  # 解析JSON
         jsonls.append(data)
 
 
@@ -29,9 +29,9 @@ for res in tqdm(iter(jsonls),desc="generating response ..."):
     jsonlsResponse.append(json_res)
 
 with open(f"input_response_data_{model_name}_{formatted_datetime}.jsonl","a")as f:
-    for jsonlsResponse in tqdm(jsonlsResponse,desc="writing response ...:"):
-        json_line = json.dumps(jsonlsResponse)  # 将字典转换为JSON字符串
-        f.write(json_line)
+    for j in tqdm(jsonlsResponse,desc="writing response ...:"):
+        json_line = json.dumps(j)  # 将字典转换为JSON字符串
+        f.write(json_line+"\n")
     print("if测评结束")
 
 

@@ -42,9 +42,9 @@ def chat_with_GLM(prompt:str,inputText:str):
         result = make_request()
         print("请求成功:", result)
         return result
-    except RetryError:
-        print("请求失败，已重试3次，跳过此请求。")
-        return "Retrying Spark 跳过此请求"
+    except Exception as e:
+        print(e)
+        raise
 
 
 
