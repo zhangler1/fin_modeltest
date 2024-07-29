@@ -3,7 +3,7 @@ import ast
 
 from exec_application_eval import eval_application
 from exec_fin_eval import eval_fin_ability
-
+from finDatasets.instruction_following_eval.ifmain import instruction_following_eval
 parser = argparse.ArgumentParser()
 
 # parser.add_argument('--model_name', required=True, type=str)
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     # availble models are here "['spark13b', 'glm', 'spark_lite']"
     args.models="['spark_lite']"
     args.model_name=""
-    args.eval_type="qa"
+    args.eval_type="if_eval"
     # availble datasets are "['ceval', 'cflue', 'fineval']"
     args.datasets="['ceval']"
     args.datasetName=""
@@ -34,5 +34,12 @@ if args.eval_type == 'qa':
             args.datasetName=name
             print(f"using dataset : {name}")
             eval_fin_ability(args)
+elif args.eval_type == 'if_eval':
+    models= ast.literal_eval(args.models)
+    for model in models:
+        args.model_name=model
+        print(f"using model : {model}")
+        instruction_following_eval(model)
+
 elif args.eval_type == 'application':
     eval_application(args)
