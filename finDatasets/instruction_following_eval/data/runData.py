@@ -4,8 +4,14 @@ from datetime import datetime
 formatted_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 from  tqdm import tqdm
 
-model_name="spark_lite"
 
+
+from absl import app
+from absl import flags
+from absl import logging
+model_name=flags.DEFINE_string(
+    "input_data", "spark_lite", "path to input data", required=True
+)
 print("格式化日期和时间：", formatted_datetime)
 from chatWithModels.chat import chatWithModel
 
@@ -22,13 +28,13 @@ with open('input_data.jsonl', 'r') as file:
 jsonlsResponse=[]
 for res in tqdm(iter(jsonls),desc="generating response ..."):
     prompt=res["prompt"]
-    response=chatWithModel(model_name, 'you are a helpful assistant', prompt)
+    response=chatWithModel(model_name.value, 'you are a helpful assistant', prompt)
     json_res={"prompt": f"{prompt}",
           "response": f"{response}"}
 
     jsonlsResponse.append(json_res)
 
-with open(f"input_response_data_{model_name}_{formatted_datetime}.jsonl","a")as f:
+with open(f"input_response_data_{model_name.value}.jsonl","a")as f:
     for j in tqdm(jsonlsResponse,desc="writing response ...:"):
         json_line = json.dumps(j)  # 将字典转换为JSON字符串
         f.write(json_line+"\n")
