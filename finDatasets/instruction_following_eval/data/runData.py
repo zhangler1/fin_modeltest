@@ -10,12 +10,14 @@ from  tqdm import tqdm
 from absl import app
 from absl import flags #flags需要和app结合使用哦嗯
 from absl import logging
-
-model_name = flags.DEFINE_string(
+FLAGS = flags.FLAGS
+FLAGS.DEFINE_string(
     "model_name", "spark_lite", "path to input data"
 )
 def main(argv):
-
+    # 读取并打印命令行参数
+    logging.info(f"Model Name: {FLAGS.model_name}")
+    print(f"Model Name: {FLAGS.model_name}")
 
     print("格式化日期和时间：", formatted_datetime)
     from chatWithModels.chat import chatWithModel
@@ -34,13 +36,13 @@ def main(argv):
     jsonlsResponse=[]
     for res in tqdm(iter(jsonls),desc="generating response ..."):
         prompt=res["prompt"]
-        response=chatWithModel(model_name.value, 'you are a helpful assistant', prompt)
+        response=chatWithModel(FLAGS.model_name.value, 'you are a helpful assistant', prompt)
         json_res={"prompt": f"{prompt}",
               "response": f"{response}"}
 
         jsonlsResponse.append(json_res)
 
-    with open(f"input_response_data_{model_name.value}.jsonl","a")as f:
+    with open(f"finDatasets/instruction_following_eval/data/input_response_data_{FLAGS.model_name.value}.jsonl","a")as f:
         for j in tqdm(jsonlsResponse,desc="writing response ...:"):
             json_line = json.dumps(j)  # 将字典转换为JSON字符串
             f.write(json_line+"\n")

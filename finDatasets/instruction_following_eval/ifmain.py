@@ -23,12 +23,8 @@ def instruction_following_eval(model_name:str):
     # 使用 subprocess 运行命令
     try:
         if not os.path.exists(data_path):
-            with subprocess.Popen(command_rundata, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                  text=True) as process:
-                for line in process.stdout:
-                    print(line, end="")  # 实时打印 stdout
-                for line in process.stderr:
-                    print(line, end="")  # 实时打印 stderr
+            print("please run runData.py before generate llm ")
+            return
         result = subprocess.run(command_eval, capture_output=True, text=True, check=True)
         # 输出结果
         print("STDOUT:", result.stdout)
