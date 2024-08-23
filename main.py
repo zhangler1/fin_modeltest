@@ -1,6 +1,7 @@
 import argparse
 import ast
 import json
+import os
 
 from torch.utils.hipify.hipify_python import meta_data
 
@@ -54,7 +55,8 @@ if args.eval_type == 'qa':
 
             result=MeanVarianceDicts(results)
             result["metaData"]=metaData
-            file_name = f"{args.model_name}_{args.datasetName}_history.jsonl"
+            os.makedirs(os.path.join(args.save_result_dir,args.model_name), exist_ok=True)
+            file_name = f"{args.save_result_dir}/{args.model_name}/{args.model_name}_{args.datasetName}_history.jsonl"
             with open(file_name,"a")as f:
                 f.write(json.dumps(result,ensure_ascii=False) + '\n')
 

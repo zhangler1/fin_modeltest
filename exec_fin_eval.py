@@ -21,7 +21,7 @@ def eval_fin_ability(args)->dict:
         model, tokenizer = load_models_tokenizer(args.checkpoint_path)
 
     # 载入评测集
-    dataset = load_dataset(args.datasetName)
+    dataset = load_dataset(args.datasetName)[:5]
     print(len(dataset))
 
     # 大模型推理回答&记录答案
@@ -107,7 +107,7 @@ def eval_fin_ability(args)->dict:
         metrics["rouge_L"] = rouge_l
     if args.save_result_dir:
         os.makedirs(args.save_result_dir, exist_ok=True)
-        dataset.to_json(result_path, orient='records', force_ascii=False)
+        dataset.to_json(result_path, force_ascii=False)
 
     dataset["metrics"] = metrics
     #记录 返回具体文本
