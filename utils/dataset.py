@@ -38,9 +38,8 @@ def get_functions(moduleName="utils.dataset"):
     返回：
     dict: 一个字典，其中键是函数名称，值是函数对象。
     示例：
-    >>> functions = get_functions("math")
-    >>> functions["sqrt"]
-    <built-in function sqrt>
+     functions = get_functions("math")
+     functions["sqrt"]
     该函数对于动态加载模块并检索其函数特别有用，例如在需要根据配置或用户输入导入模块时。
 
     注意事项：

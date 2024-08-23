@@ -36,10 +36,37 @@ class MeanVariance:
 
     def __str__(self):
         # 返回格式化字符串
-        return f"{self.mean}±{self.std:.4f}"
-
+        return f"{self.mean:.2f}±{self.std:.2f}"
+    def __repr__(self):
+        # 返回格式化字符串
+        return f"{self.mean:.2f}±{self.std:.2f}"
 # 示例用法
 
+
+import numpy as np
+def MeanVarianceDicts(dicts:list[dict])->dict[str, MeanVariance]:
+    if len(dicts) == 0:
+        return {}
+    # 创建一个新的字典用于存储方差
+    variance_dict = {}
+
+    # 遍历字典的键
+    for key in dicts[0].keys():
+        # 提取当前键的所有值
+        values = [d[key] for d in dicts]
+        if any([ not isinstance(value,(float,int))  for value in values]):
+            raise ValueError(" only recept value type belongs to int or float !")
+        # 计算方差
+        mv = MeanVariance(values)  # 使用ddof=1来计算样本方差
+
+        # 将方差存入新的字典
+        variance_dict[key] = str(mv)
+
+    return variance_dict
+
 if __name__ == '__main__':
-    mv = MeanVariance([2,23,5,4,2,45])
-    print(mv)  # 输出 2±0.05
+    dict1 = {'a': 1.5, 'b': 2, 'c': 3}
+    dict2 = {'a': 2, 'b': 3.8, 'c': 4}
+    dict3 = {'a': 3, 'b': 4, 'c': 5}
+    dicts = [dict1, dict2, dict3]
+    print(MeanVarianceDicts(dicts))  # 输出 2±0.05

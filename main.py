@@ -1,10 +1,21 @@
 import argparse
 import ast
+import json
+
+from torch.utils.hipify.hipify_python import meta_data
 
 from exec_application_eval import eval_application
 from exec_fin_eval import eval_fin_ability
 from finDatasets.instruction_following_eval.ifmain import instruction_following_eval
 parser = argparse.ArgumentParser()
+from utils.InferStatistics import MeanVarianceDicts
+
+from datetime import datetime
+
+# 获取当前日期
+
+
+# 假设你有不同的模型数据集名称
 
 # parser.add_argument('--model_name', required=True, type=str)
 # parser.add_argument('--save_result_dir', required=True, type=str)
@@ -16,7 +27,6 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # availble models are here "['spark13b', 'glm', 'spark_lite']"
     args.models="['spark_lite']"
-    args.model_name=""
     args.eval_type="qa"
     # availble datasets are "['ceval', 'cflue', 'fineval']"
     args.datasets="['ceval']"
@@ -24,6 +34,9 @@ if __name__ == '__main__':
     args.request_type = "local"
     args.checkpoint_path="/home/llm/LLMs/Qwen1.5-1.8B"
     args.save_result_dir="modelResults"
+    args.eval_times=5
+    args.start_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+
 
 if args.eval_type == 'qa':
     datasetNames= ast.literal_eval(args.datasets)
@@ -31,10 +44,20 @@ if args.eval_type == 'qa':
     for model in models:
         args.model_name=model
         print(f"using model : {model}")
-        for name in datasetNames:
-            args.datasetName=name
-            print(f"using dataset : {name}")
-            eval_fin_ability(args)
+        for dataset in datasetNames:
+            args.datasetName=dataset
+            print(f"using dataset : {dataset}")
+            results=[]
+            for time in range(args.eval_times):
+                data,metaData=eval_fin_ability(args)
+                results.append(data)
+
+            result=MeanVarianceDicts(results)
+            result["metaData"]=metaData
+            file_name = f"{args.model_name}_{args.datasetName}_history.jsonl"
+            with open(file_name,"a")as f:
+                f.write(json.dumps(result,ensure_ascii=False) + '\n')
+
 elif args.eval_type == 'if_eval':
     models= ast.literal_eval(args.models)
     for model in models:

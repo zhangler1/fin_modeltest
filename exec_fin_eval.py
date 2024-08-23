@@ -1,3 +1,4 @@
+
 from utils.evaluator import load_models_tokenizer
 from utils.dataset import load_dataset
 from utils.format_example import format_one_example, format_multi_example
@@ -10,7 +11,7 @@ from utils.loadModels import load_models_tokenizer, chat_with_model_hf
 from chatWithModels.chat import chatWithModel
 
 
-def eval_fin_ability(args):
+def eval_fin_ability(args)->dict:
     global model_response
     if args.request_type == "http":
         model = None
@@ -83,17 +84,28 @@ def eval_fin_ability(args):
         bleu_1, bleu_4 = bleu_score(references, candidates)
         rouge_1, rouge_2, rouge_l = rouge_score(references, candidates)
 
-    result_path = os.path.join(args.save_result_dir, f"{args.model_name}_{args.datasetName}_result.json")
+    result_path = os.path.join(args.save_result_dir, f"{args.model_name}_{args.datasetName}_{args.start_time}.json")
+    metaData={}
+    metaData["time"]=args.start_time
+    metaData["model_name"]=args.model_name
+    metaData["datasetName"]=args.datasetName
+    metaData["task"]=args.eval_type
+
+    metrics = {}
+    dataset["response"] = responses
+    dataset["pred"] = y_pred
+    metrics["acc"] = score_acc
+    metrics["weighted_f1"] = score_weighted_f1
+    if "analysis" in dataset.columns:
+        # 如果数据集合中有标准答案，比如总结的标准答案
+        metrics["bleu_1"] = bleu_1
+        metrics["bleu_4"] = bleu_4
+        metrics["rouge_1"] = rouge_1
+        metrics["rouge_2"] = rouge_2
+        metrics["rouge_L"] = rouge_l
     if args.save_result_dir:
-        dataset["response"] = responses
-        dataset["pred"] = y_pred
-        dataset["acc"] = score_acc
-        dataset["weighted_f1"] = score_weighted_f1
-        if "analysis" in dataset.columns:
-            dataset["bleu_1"] = bleu_1
-            dataset["bleu_4"] = bleu_4
-            dataset["rouge_1"] = rouge_1
-            dataset["rouge_2"] = rouge_2
-            dataset["rouge_L"] = rouge_l
         os.makedirs(args.save_result_dir, exist_ok=True)
         dataset.to_json(result_path, orient='records', force_ascii=False)
+    dataset["metrics"] = metrics
+    return metrics,metaData
+
