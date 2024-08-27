@@ -131,8 +131,6 @@ def eval_application(args):
     metaData["task"]=args.task
     metaData["sub_task"] = args.sub_task
 
-
-    metaData["response"] = responses
     #metrics["blue_1"] = bleu1
     #metrics["blue_4"] = bleu4
 
