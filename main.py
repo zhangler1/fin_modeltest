@@ -5,6 +5,7 @@ import os
 
 from torch.utils.hipify.hipify_python import meta_data
 
+
 from exec_application_eval import eval_application
 from exec_fin_eval import eval_fin_ability
 from finDatasets.instruction_following_eval.ifmain import instruction_following_eval
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     args.eval_times=5
     args.start_time = datetime.now().strftime('%Y-%m-%d %H:%M')
     # availble sub_task are "['金融文本分类', '金融咨询', '金融翻译','金融文本生成','金融文本抽取']"
-    args.task = "金融翻译"
+    args.task = "金融文本分类"
     # availble sub_task are "['金融英中翻译', '金融中英翻译',]"
     args.sub_task = "金融中英翻译"
 

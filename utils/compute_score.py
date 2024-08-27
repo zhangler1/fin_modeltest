@@ -166,7 +166,7 @@ def compute_text_generation(file_path):
 
         # result
         print(f"task: 金融文本生成")
-        _, _, rougel = rouge_score(references, candidates)
+        rouge1, rouge2, rougel = rouge_score(references, candidates)
         # bert = bert_score(references, candidates)
         print('\n')
 
@@ -179,7 +179,7 @@ def compute_text_generation(file_path):
             sub_task_tg[sub_task] = rouge_l
             # sub_task_tg_bert[sub_task] = bert_sub_task
             print('\n')
-    return rougel, sub_task_tg
+    return rouge1, rouge2, rougel, sub_task_tg
 
 
 def compute_finqa(file_path):
@@ -240,14 +240,14 @@ def compute_text_classification(file_path):
     for _, row in samples.iterrows():
         label = row['output']
         if row['sub_task'] == 'ESG情感分类':
-            if label[0] in row['response']:  # '正', '中', '负'
+            if label[0] in row['model_response']:  # '正', '中', '负'
                 acc = 1
-            elif label == '负向' and row['response'] == 'Negative' or label == '正向' and row['response'] == 'Positive':
+            elif label == '负向' and row['model_response'] == 'Negative' or label == '正向' and row['model_response'] == 'Positive':
                 acc = 1
             else:
                 acc = 0
         elif row['sub_task'] == '合规政策审核':  # for baichuan2
-            if any(s in row['response'] for s in ['不合规', '不符合']):
+            if any(s in row['model_response'] for s in ['不合规', '不符合']):
                 if row['output'] == '否':
                     acc = 1
                 else:
@@ -727,8 +727,8 @@ def industry_classification_result_process1(sub_df):
 
 def cal_financial_extract_score(data):
     '''金融事件抽取得分'''
-    content = data['response']
-    output = data['__raw.output']
+    content = data['model_response']
+    output = data['output']
     content_adj = financial_extract_result_process_single(content)
     output = output_adj(output)
     output = (lambda a: {x['role']: x['argument'] for x in a})(output)
