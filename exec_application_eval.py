@@ -1,4 +1,7 @@
 #from main import dataset
+from modelscope.models.nlp.qwen.qwen_generation_utils import switch
+
+
 from utils.evaluator import load_models_tokenizer, load_llama_models_tokenizer
 from utils.dataset import load_dataset
 from utils.compute_score import *
@@ -18,17 +21,20 @@ def eval_application(args):
 
     # 载入评测集
     dataset = load_dataset(args.eval_type)
+    if args.task == "金融翻译":
+        dataset = dataset[dataset["sub_task"] == args.sub_task]
+    else :
+        dataset = dataset[dataset["task"] == args.task]
     #dataset = dataset[dataset["sub_task"]==args.sub_task]
     # 大模型推理回答&记录答案
     responses = []
 
     for _, record in tqdm(dataset.iterrows()):
-        if record['sub_task'] == "金融英中翻译":
+        if record['task'] == "金融翻译":
             prompt = record['instruction'].split('\n')[0]
 
             input = record['instruction'].split('\n')[2]
-            if  record['sub_task'] == "金融英中翻译":
-                input = record['instruction'].split('\n')[2]
+
             try:
                 if args.request_type == "http":
                     #model_response = chatWithModel(args.model_name, "", prompt)
@@ -54,7 +60,7 @@ def eval_application(args):
 
     if not args.save_result_dir:
         os.makedirs(args.save_result_dir, exist_ok=True)
-    dataset = dataset[dataset["sub_task"] == "金融英中翻译"]
+    # dataset = dataset[dataset["sub_task"] == "金融英中翻译"]
     dataset["model_response"] = responses
 
     dataset.to_json(result_path, orient='records', force_ascii=False)
@@ -62,20 +68,29 @@ def eval_application(args):
     # 计算应用评分
     #get_application_score(args)
 
-    bleu1,bleu4 = get_application_score(result_path)
+    #bleu1,bleu4 = get_application_score(result_path)
 
+    metrics = {}
+    if args.sub_task=="金融英中翻译":
+        bleu1, bleu4 = compute_nmt_en2zh(result_path)
+        metrics["blue_1"] = bleu1
+        metrics["blue_4"] = bleu4
+    elif args.sub_task == "金融中英翻译":
+        bleu1, bleu4 = compute_nmt_zh2en(result_path)
+        metrics["blue_1"] = bleu1
+        metrics["blue_4"] = bleu4
 
-    metaData={}
+    metaData = {}
     metaData["time"]=args.start_time
     metaData["model_name"]=args.model_name
     metaData["datasetName"]=args.datasetName
     metaData["task"]=args.eval_type
     metaData["sub_task"] = args.sub_task
 
-    metrics = {}
-    dataset["response"] = responses
-    metrics["blue_1"] = bleu1
-    metrics["blue_4"] = bleu4
+
+    metaData["response"] = responses
+    #metrics["blue_1"] = bleu1
+    #metrics["blue_4"] = bleu4
 
     if args.save_result_dir:
         os.makedirs(args.save_result_dir, exist_ok=True)
