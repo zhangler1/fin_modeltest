@@ -1,0 +1,4 @@
+{"blue_4": "16.80±1.99", "metaData": {"time": "2024-08-27 10-24", "model_name": "spark_lite", "datasetName": "ceval", "task": "application"}}
+{"blue_4": "18.72±2.53", "metaData": {"time": "2024-08-27 10-33", "model_name": "spark_lite", "datasetName": "ceval", "task": "application"}}
+{"blue_4": "17.61±1.66", "metaData": {"time": "2024-08-27 10-40", "model_name": "spark_lite", "datasetName": "ceval", "task": "application", "sub_task": "2024-08-27 10-40"}}
+{"blue_4": "16.02±2.55", "metaData": {"time": "2024-08-27 10.44", "model_name": "spark_lite", "datasetName": "ceval", "task": "application", "sub_task": "英中翻译"}}
