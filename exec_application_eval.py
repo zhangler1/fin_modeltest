@@ -1,63 +1,132 @@
-from utils.evaluator import load_models_tokenizer
+#from main import dataset
+from modelscope.models.nlp.qwen.qwen_generation_utils import switch
+
+
+from utils.evaluator import load_models_tokenizer, load_llama_models_tokenizer
 from utils.dataset import load_dataset
 from utils.compute_score import *
 from tqdm import tqdm
-from utils.loadModels import  load_models_tokenizer,chat_with_model_hf
+import argparse
+from chatWithModels.chat import chatWithModel
+from utils.loadModels import load_models_tokenizer, chat_with_model_hf
 
 def eval_application(args):
     # load model & tokenizer
-    model,tokenizer = load_models_tokenizer()
+    if args.request_type == "http":
+        model = None
 
+    elif args.request_type == "local":
+
+        model, tokenizer = load_models_tokenizer(args.checkpoint_path)
 
     # 载入评测集
-    dataset = load_dataset(args.eval_type)[:100]
-
+    dataset = load_dataset(args.eval_type)
+    if args.task == "金融翻译":
+        dataset = dataset[dataset["sub_task"] == args.sub_task]
+    else :
+        dataset = dataset[dataset["task"] == args.task]
+    #dataset = dataset[dataset["sub_task"]==args.sub_task]
     # 大模型推理回答&记录答案
     responses = []
+
     for _, record in tqdm(dataset.iterrows()):
-        prompt = record['instruction']
-        # model_response, _ = model.chat(
-        #     tokenizer,
-        #     prompt,
-        #     history=None,
-        # )
-        model_response=chat_with_model_hf(model,tokenizer,prompt)
-        responses.append(model_response)
-    result_path = os.path.join(args.save_result_dir, f"{args.model_name}_application_result.json")
-    if args.save_result_dir:
-        dataset["model_response"] = responses
+        if record['task'] == "金融翻译":
+            prompt = record['instruction'].split('\n')[0]
+
+            input = record['instruction'].split('\n')[2]
+
+            try:
+                if args.request_type == "http":
+                    #model_response = chatWithModel(args.model_name, "", prompt)
+                    model_response = chatWithModel(args.model_name, prompt, input)
+                elif args.request_type == "local":
+
+                    model_response = chat_with_model_hf(model, tokenizer, prompt)
+                else:
+                    raise ValueError("Invalid request type")
+            except Exception:
+                model_response = Exception
+            # model_response, _ = model.chat(
+            #     tokenizer,
+            #     prompt,
+            #     history=None,
+            # )
+            responses.append(model_response)
+
+    os.makedirs(os.path.join(args.save_result_dir, args.model_name), exist_ok=True)
+    result_path = os.path.join(args.save_result_dir, args.model_name,
+                               f"{args.model_name}_{args.datasetName}_{args.start_time}.json")
+    #result_path = os.path.join(args.save_result_dir, args.model_name,"{args.model_name}_{args.datasetName}_{args.start_time}.json")
+
+    if not args.save_result_dir:
         os.makedirs(args.save_result_dir, exist_ok=True)
-        dataset.to_json(result_path, orient='records', force_ascii=False)
+    # dataset = dataset[dataset["sub_task"] == "金融英中翻译"]
+    dataset["model_response"] = responses
+
+    dataset.to_json(result_path, orient='records', force_ascii=False)
 
     # 计算应用评分
-    get_application_score(args)
+    #get_application_score(args)
+
+    #bleu1,bleu4 = get_application_score(result_path)
+
+    metrics = {}
+    if args.sub_task=="金融英中翻译":
+        bleu1, bleu4 = compute_nmt_en2zh(result_path)
+        metrics["blue_1"] = bleu1
+        metrics["blue_4"] = bleu4
+    elif args.sub_task == "金融中英翻译":
+        bleu1, bleu4 = compute_nmt_zh2en(result_path)
+        metrics["blue_1"] = bleu1
+        metrics["blue_4"] = bleu4
+
+    metaData = {}
+    metaData["time"]=args.start_time
+    metaData["model_name"]=args.model_name
+    metaData["datasetName"]=args.datasetName
+    metaData["task"]=args.eval_type
+    metaData["sub_task"] = args.sub_task
 
 
-def get_application_score(args):
-    _path = args.save_result_dir
-    file_path = f'{_path}/{args.model_name}_application_result.json'
+    metaData["response"] = responses
+    #metrics["blue_1"] = bleu1
+    #metrics["blue_4"] = bleu4
+
+    if args.save_result_dir:
+        os.makedirs(args.save_result_dir, exist_ok=True)
+        dataset.to_json(result_path, orient='records', force_ascii=False)
+    dataset["metrics"] = metrics
+    return metrics,metaData
+
+
+def get_application_score(path):
+    # _path = args.save_result_dir
+    # file_path = f'{_path}/{args.datasetName}/{args.model_name}_application_result.json'
 
     result = {}
-    print('Model: %s' % args.model_name)
+    #print('Model: %s' % args.models[0])
     # QA
-    rouge_l, qa_bert = compute_finqa(file_path)
-    result['QA'] = {'rouge-L': rouge_l,
-                    'Bert': qa_bert}
-    # TG
-    rouge_l_tg, _, tg_bert, _ = compute_text_generation(file_path)
-    result['TG'] = {'rouge-L': rouge_l_tg,
-                    'Bert': tg_bert}
-    # MT-e2zh
-    bleu, comet = compute_nmt_en2zh(file_path)
-    result['MT-e2zh'] = {'BLEU': bleu,
-                         'COMET': comet}
-    # MT-zh2e
-    bleu, comet = compute_nmt_zh2en(file_path)
-    result['MT-zh2e'] = {'BLEU': bleu,
-                         'COMET': comet}
-    # TC
-    acc, _ = compute_text_classification(file_path)
-    result['TC'] = {'ACC': acc}
+    # rouge_l = compute_finqa(file_path)
+    # result['QA'] = {'rouge-L': rouge_l
+    #                 }
+
+    # # TG
+    # rouge_l_tg, _ = compute_text_generation(file_path)
+    # result['TG'] = {'rouge-L': rouge_l_tg
+    #                 }
+    # # MT-e2zh
+    bleu1,bleu4 = compute_nmt_en2zh(path)
+    result['MT-e2zh'] = {'BLEU': bleu1}
+    return bleu1,bleu4
+    # # MT-zh2e
+    # bleu = compute_nmt_zh2en(file_path)
+    # result['MT-zh2e'] = {'BLEU': bleu
+    #                      }
+    #TC
+    # acc = compute_text_classification(file_path)
+    # result['TC'] = {'ACC': acc}
+
     # RE
-    f1, _ = compute_extraction(file_path)
-    result['RE'] = {'F1-score': f1}
+    # f1, _ = compute_extraction(file_path)
+    # result['RE'] = {'F1-score': f1}
+    print(result)

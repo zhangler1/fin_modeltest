@@ -11,9 +11,10 @@ def __load_cflue():
     return dataset
 
 
-# def load_application():
-#     dataset = pd.read_json('finDatasets/cflue/data/application/application.json')
-#     return dataset
+def __load_application():
+    dataset = pd.read_json('finDatasets/cflue/data/application/application.json')
+    # dataset = pd.read_json('finDatasets/cflue/data/application/ap3.json')
+    return dataset
 
 
 def __load_fineval():

@@ -1,4 +1,3 @@
-
 from utils.evaluator import load_models_tokenizer
 from utils.dataset import load_dataset
 from utils.format_example import format_one_example, format_multi_example
@@ -21,7 +20,7 @@ def eval_fin_ability(args)->dict:
         model, tokenizer = load_models_tokenizer(args.checkpoint_path)
 
     # 载入评测集
-    dataset = load_dataset(args.datasetName)[:5]
+    dataset = load_dataset(args.datasetName)
     print(len(dataset))
 
     # 大模型推理回答&记录答案
@@ -107,8 +106,7 @@ def eval_fin_ability(args)->dict:
         metrics["rouge_L"] = rouge_l
     if args.save_result_dir:
         os.makedirs(args.save_result_dir, exist_ok=True)
-        dataset.to_json(result_path, force_ascii=False)
-
+        dataset.to_json(result_path, orient='records', force_ascii=False)
     dataset["metrics"] = metrics
     #记录 返回具体文本
     dataset["response"] = responses

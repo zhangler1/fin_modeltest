@@ -28,15 +28,19 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # availble models are here "['spark13b', 'glm', 'spark_lite']"
     args.models="['spark_lite']"
-    args.eval_type="qa"
+    args.eval_type="application"
     # availble datasets are "['ceval', 'cflue', 'fineval']"
-    args.datasets="['ceval']"
+    args.datasets="['cflue']"
     args.datasetName=""
-    args.request_type = "local"
+    args.request_type = "http"
     args.checkpoint_path="/home/llm/LLMs/Qwen1.5-1.8B"
     args.save_result_dir="modelResults"
     args.eval_times=5
     args.start_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+    # availble sub_task are "['金融文本分类', '金融咨询', '金融翻译','金融文本生成','金融文本抽取']"
+    args.task = "金融翻译"
+    # availble sub_task are "['金融英中翻译', '金融中英翻译',]"
+    args.sub_task = "金融中英翻译"
 
 
 if args.eval_type == 'qa':
@@ -68,4 +72,22 @@ elif args.eval_type == 'if_eval':
         instruction_following_eval(model)
 
 elif args.eval_type == 'application':
-    eval_application(args)
+    datasetNames= ast.literal_eval(args.datasets)
+    models= ast.literal_eval(args.models)
+    for model in models:
+        args.model_name=model
+        print(f"using model : {model}")
+        for dataset in datasetNames:
+            args.datasetName=dataset
+            print(f"using dataset : {dataset}")
+            results=[]
+            for time in range(args.eval_times):
+                data,metaData=eval_application(args)
+                results.append(data)
+
+            result=MeanVarianceDicts(results)
+            result["metaData"]=metaData
+            file_name = f"{args.model_name}_{args.datasetName}_history.jsonl"
+            with open(file_name,"a")as f:
+                f.write(json.dumps(result,ensure_ascii=False) + '\n')
+

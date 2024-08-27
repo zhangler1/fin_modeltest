@@ -1,6 +1,5 @@
 import json
 import os
-
 import numpy as np
 import re
 import sys
@@ -11,7 +10,7 @@ from sklearn.metrics import f1_score as f1
 from sklearn.metrics import accuracy_score
 from rouge import Rouge
 from sacrebleu.metrics import BLEU
-from comet import download_model, load_from_checkpoint
+#from comet import load_from_checkpoint
 from bert_score import score
 
 
@@ -44,10 +43,10 @@ def bleu_score(reference, candidate):
     return bleu_1, bleu_4
 
 
-# def bert_score(reference, candidate):
-#     P, R, F1 = score(candidate, reference, model_type="bert-base-chinese", lang="zh", verbose=True)
-#     print('Bert Score: %s' % F1.mean())
-#     return F1.mean()
+def bert_score(reference, candidate):
+    P, R, F1 = score(candidate, reference, model_type="bert-base-chinese", lang="zh", verbose=True)
+    print('Bert Score: %s' % F1.mean())
+    return F1.mean()
 
 
 def rouge_score(reference, candidate):
@@ -67,13 +66,14 @@ def rouge_score(reference, candidate):
     return rouge_1, rouge_2, rouge_l
 
 
-def compute_nmt_zh2en(file_path, model_path):
+def compute_nmt_zh2en(file_path):
     references = []
     candidates = []
     comet_data = []
     print("金融中英翻译")
-    model_path = download_model("Unbabel/XCOMET-XL")
-    model = load_from_checkpoint(model_path)  # XCOMET-XL/checkpoints/model.ckpt
+    # model_path = download_model("Unbabel/XCOMET-XL")
+    #model = load_from_checkpoint(model_path)  # XCOMET-XL/checkpoints/model.ckpt
+    model = 1
     """
     data = [
         {
@@ -90,28 +90,29 @@ def compute_nmt_zh2en(file_path, model_path):
         for line in sample_list:
             if line['sub_task'] == '金融中英翻译':
                 references.append(" ".join(tokenizer_en(line['output'])))
-                candidates.append(" ".join(tokenizer_en(line['predict'])))
+                candidates.append(" ".join(tokenizer_en(line['model_response'])))
                 src = line['instruction'].replace("你是一个金融行业专家，请将下面金融领域的中文内容翻译成准确、专业的英文。\n中文：", "").replace("英文：",
                                                                                                            "").strip()
                 comet_data.append({
                     "src": src,
-                    "mt": line['predict'],
+                    "mt": line['model_response'],
                     "ref": line['output']
                 })
-        _, bleu4 = bleu_score(references, candidates)
-        model_output = model.predict(comet_data, batch_size=32, gpus=1)
-        print(model_output.system_score)  # system-level score
+        bleu1, bleu4 = bleu_score(references, candidates)
+        #model_output = model.predict(comet_data, batch_size=32, gpus=1)
+        #print(model_output.system_score)  # system-level score
         print('\n')
-    return bleu4, model_output.system_score
+    return bleu1,bleu4
 
 
-def compute_nmt_en2zh(file_path, model_path):
+def compute_nmt_en2zh(file_path):
     references = []
     candidates = []
     comet_data = []
 
     # model_path = download_model("Unbabel/XCOMET-XL")
-    model = load_from_checkpoint(model_path)  # XCOMET-XL/checkpoints/model.ckpt
+    #model = load_from_checkpoint(model_path)  # XCOMET-XL/checkpoints/model.ckpt
+    model = 1
     print("金融英中翻译")
     with open(file_path, 'r') as input_file:
         print("Reading\t" + file_path)
@@ -120,19 +121,19 @@ def compute_nmt_en2zh(file_path, model_path):
         for line in sample_list:
             if line['sub_task'] == '金融英中翻译':
                 references.append(" ".join(jieba.lcut(line['output'])))
-                candidates.append(" ".join(jieba.lcut(line['predict'])))
+                candidates.append(" ".join(jieba.lcut(line['model_response'])))
                 src = line['instruction'].replace(
                     "你是一个金融行业专家，请将下面金融领域的英文内容翻译成准确、专业的中文。\n英文：", "").replace("中文：", "").strip()
                 comet_data.append({
                     "src": src,
-                    "mt": line['predict'],
+                    "mt": line['model_response'],
                     "ref": line['output']
                 })
-        _, bleu4 = bleu_score(references, candidates)
-        model_output = model.predict(comet_data, batch_size=32, gpus=1)
-        print(model_output.system_score)  # system-level score
+        bleu1, bleu4 = bleu_score(references, candidates)
+        #model_output = model.predict(comet_data, batch_size=32, gpus=1)
+         # system-level score
         print('\n')
-    return bleu4, model_output.system_score
+    return bleu1,bleu4
 
 
 def compute_text_generation(file_path):
@@ -145,39 +146,40 @@ def compute_text_generation(file_path):
     with open(file_path, 'r', encoding='utf-8') as input_file:
         print("Reading\t" + file_path)
         sample_list = json.load(input_file)
-        sample_list = pd.json_normalize(sample_list, 'outputs')
+        sample_list = pd.json_normalize(sample_list,)
+        # sample_list = pd.json_normalize(sample_list, 'output')
         for _, line in sample_list.iterrows():
-            if line['__raw.task'] == '金融文本生成':
+            if line['task'] == '金融文本生成':
                 # compute all score
-                if not line['response']:
-                    line['response'] = 'None'
-                references.append(" ".join(jieba.lcut(line['__raw.output'])))
-                candidates.append(" ".join(jieba.lcut(line['response'])))
+                if not line['model_response']:
+                    line['model_response'] = 'None'
+                references.append(" ".join(jieba.lcut(line['output'])))
+                candidates.append(" ".join(jieba.lcut(line['model_response'])))
 
                 # compute sub_task score
-                sub_task = line['__raw.sub_task']
+                sub_task = line['sub_task']
                 if sub_task not in sub_task_references:
                     sub_task_references[sub_task] = []
                     sub_task_candidates[sub_task] = []
-                sub_task_references[sub_task].append(" ".join(jieba.lcut(line['__raw.output'])))
-                sub_task_candidates[sub_task].append(" ".join(jieba.lcut(line['response'])))
+                sub_task_references[sub_task].append(" ".join(jieba.lcut(line['output'])))
+                sub_task_candidates[sub_task].append(" ".join(jieba.lcut(line['model_response'])))
 
         # result
         print(f"task: 金融文本生成")
         _, _, rougel = rouge_score(references, candidates)
-        bert = bert_score(references, candidates)
+        # bert = bert_score(references, candidates)
         print('\n')
 
-        sub_task_tg, sub_task_tg_bert = {}, {}
+        sub_task_tg = {}
         for sub_task, refs in sub_task_references.items():
             print(f"Sub-task: {sub_task}")
             candidates = sub_task_candidates[sub_task]
             _, _, rouge_l = rouge_score(refs, candidates)
-            bert_sub_task = bert_score(refs, candidates)
+            # bert_sub_task = bert_score(refs, candidates)
             sub_task_tg[sub_task] = rouge_l
-            sub_task_tg_bert[sub_task] = bert_sub_task
+            # sub_task_tg_bert[sub_task] = bert_sub_task
             print('\n')
-    return rougel, sub_task_tg, bert, sub_task_tg_bert
+    return rougel, sub_task_tg
 
 
 def compute_finqa(file_path):
@@ -190,27 +192,29 @@ def compute_finqa(file_path):
     with open(file_path, 'r', encoding='utf-8') as input_file:
         print("Reading\t" + file_path)
         sample_list = json.load(input_file)
-        samples = pd.json_normalize(sample_list, 'outputs')
+        # samples = pd.json_normalize(sample_list, 'output')
+        samples = pd.json_normalize(sample_list,)
         for _, line in samples.iterrows():
-            if line['__raw.task'] == '金融咨询':
+            if line['task'] == '金融咨询':
                 # compute all score
-                if not line['response']:
-                    line['response'] = 'None'
-                references.append(" ".join(jieba.lcut(line['__raw.output'])))
-                candidates.append(" ".join(jieba.lcut(line['response'])))
+                if not line['model_response']:
+                    line['model_response'] = 'None'
+                references.append(" ".join(jieba.lcut(line['output'])))
+                candidates.append(" ".join(jieba.lcut(line['model_response'])))
 
                 # compute sub_task score
-                sub_task = line['__raw.sub_task']
+                sub_task = line['sub_task']
                 if sub_task not in sub_task_references:
                     sub_task_references[sub_task] = []
                     sub_task_candidates[sub_task] = []
-                sub_task_references[sub_task].append(" ".join(jieba.lcut(line['__raw.output'])))
-                sub_task_candidates[sub_task].append(" ".join(jieba.lcut(line['response'])))
+                sub_task_references[sub_task].append(" ".join(jieba.lcut(line['output'])))
+                sub_task_candidates[sub_task].append(" ".join(jieba.lcut(line['model_response'])))
 
         # result
         print(f"task: 金融咨询")
         _, _, rougel = rouge_score(references, candidates)
-        bert = bert_score(references, candidates)
+        # bert = bert_score(references, candidates)
+
         print('\n')
 
         sub_task_qa, sub_task_bert = {}, {}
@@ -219,40 +223,42 @@ def compute_finqa(file_path):
             candidates = sub_task_candidates[sub_task]
             _, _, rouge_l = rouge_score(refs, candidates)
             print('\n')
-    return rougel, bert
+    return rougel
 
 
 def compute_text_classification(file_path):
     with open(file_path, 'r', encoding='utf-8') as input_file:
         print("Reading\t" + file_path)
         sample_list = json.load(input_file)
-        samples = pd.json_normalize(sample_list, 'outputs')
-    samples = samples[samples['__raw.task'] == '金融文本分类']
+        samples = pd.json_normalize(sample_list)
+        #samples = pd.json_normalize(sample_list, 'output')
+    samples = samples[samples['task'] == '金融文本分类']
+    #samples = samples[samples['__raw.task'] == '金融文本分类']
     pattern = r"'([^']*)'"  # 提取单引号之间字符串
     puncs = [',', '，', '、']
     acc_list = []
     for _, row in samples.iterrows():
-        label = row['__raw.output']
-        if row['__raw.sub_task'] == 'ESG情感分类':
+        label = row['output']
+        if row['sub_task'] == 'ESG情感分类':
             if label[0] in row['response']:  # '正', '中', '负'
                 acc = 1
             elif label == '负向' and row['response'] == 'Negative' or label == '正向' and row['response'] == 'Positive':
                 acc = 1
             else:
                 acc = 0
-        elif row['__raw.sub_task'] == '合规政策审核':  # for baichuan2
+        elif row['sub_task'] == '合规政策审核':  # for baichuan2
             if any(s in row['response'] for s in ['不合规', '不符合']):
-                if row['__raw.output'] == '否':
+                if row['output'] == '否':
                     acc = 1
                 else:
                     acc = 0
             else:
-                if row['__raw.output'] == '是':
+                if row['output'] == '是':
                     acc = 1
                 else:
                     acc = 0
         else:
-            pred = row['response'].strip('\n')
+            pred = row['model_response'].strip('\n')
             if re.findall(pattern, pred):  # "'物料'", " ['经济绩效', '非直接经济影响']"
                 pred = re.findall(pattern, pred)
                 if len(pred) == 1 and label in pred:
@@ -732,8 +738,8 @@ def cal_financial_extract_score(data):
 
 def cal_industry_classification_score(data):
     '''金融行业情感分类打分'''
-    content = data['response']
-    output = data['__raw.output']
+    content = data['model_response']
+    output = data['output']
     contents_adj = industry_classification_result_process_single(content)
     contents_adj = process_industry_classification_output(contents_adj)
     output = (lambda x: process_industry_classification_output(eval(x)))(output)
@@ -745,20 +751,21 @@ def compute_extraction(file_path):
     with open(file_path, 'r', encoding='utf-8') as input_file:
         print("Reading\t" + file_path)
         sample_list = json.load(input_file)
-        samples = pd.json_normalize(sample_list, 'outputs')
-    samples = samples[samples['__raw.task'] == '金融文本抽取']
+        samples = pd.json_normalize(sample_list)
+        #samples = pd.json_normalize(sample_list, 'outputs')
+    samples = samples[samples['task'] == '金融文本抽取']
     f1_list = []
     for _, row in samples.iterrows():
-        label = row['__raw.output']
-        pred = row['response']
-        if row['__raw.sub_task'] == '金融事件主体抽取':
+        label = row['output']
+        pred = row['model_response']
+        if row['sub_task'] == '金融事件主体抽取':
             if label in pred:
                 acc = 1
             else:
                 acc = 0
 
             f1 = 2 * acc * 1 / (acc + 1)
-        elif row['__raw.sub_task'] == '金融事件因果关系抽取':
+        elif row['sub_task'] == '金融事件因果关系抽取':
             entities = {'原因类型': 'reason_type',
                         '原因产品': 'reason_product',
                         '原因地区': 'reason_region',
@@ -802,15 +809,15 @@ def compute_extraction(file_path):
                 f1 = 0
             else:
                 f1 = 2 * acc * recall / (acc + recall)
-        elif row['__raw.sub_task'] == '金融事件抽取':
+        elif row['sub_task'] == '金融事件主体抽取':
             f1 = cal_financial_extract_score(row) / 100
-        elif row['__raw.sub_task'] == '行业情感信息抽取':
+        elif row['sub_task'] == '行业情感信息抽取':
             f1 = cal_industry_classification_score(row) / 100
         else:
             f1 = 0
         f1_list.append(f1)
     samples['f1'] = f1_list
-    return samples['f1'].mean(), samples[['__raw.sub_task', 'f1']].groupby('__raw.sub_task').mean().to_dict()['f1']
+    return samples['f1'].mean(), samples[['sub_task', 'f1']].groupby('sub_task').mean().to_dict()['f1']
 
 
 def main(model, path):
