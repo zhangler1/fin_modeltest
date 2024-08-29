@@ -3,7 +3,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 import json
 
 @retry(stop=stop_after_attempt(3))
-def chat_with_GLM(prompt:str,inputText:str):
+def chat_with_glm(prompt:str,inputText:str):
 
     # 定义重试策略：重试3次后停止
 

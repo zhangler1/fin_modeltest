@@ -32,60 +32,31 @@ def eval_application(args):
     for _, record in tqdm(dataset.iterrows()):
         if record['task'] == "金融翻译":
             prompt = record['instruction'].split('\n')[0]
-
             input = record['instruction'].split('\n')[2]
-
-            try:
-                if args.request_type == "http":
-                    #model_response = chatWithModel(args.model_name, "", prompt)
-                    model_response = chatWithModel(args.model_name, prompt, input)
-                elif args.request_type == "local":
-
-                    model_response = chat_with_model_hf(model, tokenizer, prompt)
-                else:
-                    raise ValueError("Invalid request type")
-            except Exception:
-                model_response = Exception
-            # model_response, _ = model.chat(
-            #     tokenizer,
-            #     prompt,
-            #     history=None,
-            # )
-            responses.append(model_response)
         elif record['task'] == '金融文本分类':
             prompt = record['instruction'].split('\n')[0]
-
             input = record['instruction'].split('\n')[1:]
-
-            try:
-                if args.request_type == "http":
-                    #model_response = chatWithModel(args.model_name, "", prompt)
-                    model_response = chatWithModel(args.model_name, prompt, input)
-                elif args.request_type == "local":
-
-                    model_response = chat_with_model_hf(model, tokenizer, prompt)
-                else:
-                    raise ValueError("Invalid request type")
-            except Exception:
-                model_response = Exception
-            responses.append(model_response)
         elif record['task'] == '金融文本生成':
             prompt = record['instruction'].split('\n')[0]
-
+            input = record['instruction'].split('\n')[1:]
+        elif record['task'] == '金融文本抽取':
+            prompt = record['instruction'].split('\n')[0]
             input = record['instruction'].split('\n')[1:]
 
-            try:
-                if args.request_type == "http":
+        try:
+            if args.request_type == "http":
                     #model_response = chatWithModel(args.model_name, "", prompt)
-                    model_response = chatWithModel(args.model_name, prompt, input)
-                elif args.request_type == "local":
+                model_response = chatWithModel(args.model_name, prompt, input)
+            elif args.request_type == "local":
 
-                    model_response = chat_with_model_hf(model, tokenizer, prompt)
-                else:
-                    raise ValueError("Invalid request type")
-            except Exception:
+                model_response = chat_with_model_hf(model, tokenizer, prompt)
+            else:
+                raise ValueError("Invalid request type")
+        except Exception:
                 model_response = Exception
-            responses.append(model_response)
+
+        responses.append(model_response)
+
 
     os.makedirs(os.path.join(args.save_result_dir, args.model_name), exist_ok=True)
     result_path = os.path.join(args.save_result_dir, args.model_name,
@@ -122,7 +93,10 @@ def eval_application(args):
         metrics['rouge1'] = rouge1
         metrics['rouge2'] = rouge2
         metrics['rouge_l_tg'] = rouge_l_tg
-        metrics['sub_task_tg'] = sub_task_tg
+        #metrics['sub_task_tg'] = sub_task_tg
+    elif args.task == '金融文本抽取':
+        f1,_ = compute_extraction(result_path)
+        metrics["f1"] = f1
 
     metaData = {}
     metaData["time"]=args.start_time
@@ -131,6 +105,8 @@ def eval_application(args):
     metaData["task"]=args.task
     metaData["sub_task"] = args.sub_task
 
+
+    metaData["response"] = responses
     #metrics["blue_1"] = bleu1
     #metrics["blue_4"] = bleu4
 

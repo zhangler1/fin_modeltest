@@ -1,3 +1,4 @@
+
 from utils.evaluator import load_models_tokenizer
 from utils.dataset import load_dataset
 from utils.format_example import format_one_example, format_multi_example
@@ -83,18 +84,16 @@ def eval_fin_ability(args)->dict:
         bleu_1, bleu_4 = bleu_score(references, candidates)
         rouge_1, rouge_2, rouge_l = rouge_score(references, candidates)
 
-    #创建日志目录
-    os.makedirs(os.path.join(args.save_result_dir,args.model_name), exist_ok=True)
-    result_path = os.path.join(args.save_result_dir,args.model_name, f"{args.model_name}_{args.datasetName}_{args.start_time}.json")
-    #返回与元信息
+    result_path = os.path.join(args.save_result_dir, f"{args.model_name}_{args.datasetName}_{args.start_time}.json")
     metaData={}
     metaData["time"]=args.start_time
     metaData["model_name"]=args.model_name
     metaData["datasetName"]=args.datasetName
     metaData["task"]=args.eval_type
 
-    #记录返回指标
     metrics = {}
+    dataset["response"] = responses
+    dataset["pred"] = y_pred
     metrics["acc"] = score_acc
     metrics["weighted_f1"] = score_weighted_f1
     if "analysis" in dataset.columns:
@@ -108,8 +107,5 @@ def eval_fin_ability(args)->dict:
         os.makedirs(args.save_result_dir, exist_ok=True)
         dataset.to_json(result_path, orient='records', force_ascii=False)
     dataset["metrics"] = metrics
-    #记录 返回具体文本
-    dataset["response"] = responses
-    dataset["pred"] = y_pred
     return metrics,metaData
 
