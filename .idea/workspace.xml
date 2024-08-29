@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fde28cb2-b744-45e1-9b87-005a1762eb34" name="Changes" comment="git ignore" />
+    <list default="true" id="fde28cb2-b744-45e1-9b87-005a1762eb34" name="Changes" comment="git ignore">
+      <change beforePath="$PROJECT_DIR$/.idea/fin_modeltest.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/fin_modeltest.iml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,19 +16,20 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
   </component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/zhangler1/fin_modeltest.git",
-    "accountId": "f93a78ac-2606-4fd3-bb20-c4028667ed29"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/zhangler1/fin_modeltest.git&quot;,
+    &quot;accountId&quot;: &quot;f93a78ac-2606-4fd3-bb20-c4028667ed29&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "master",
-    "node.js.selected.package.tslint": "(autodetect)"
+    "git-widget-placeholder": "llz",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="TaskManager">
@@ -76,7 +79,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="master" />
+                        <option value="zhangle/llz" />
                       </list>
                     </value>
                   </entry>

@@ -32,20 +32,20 @@ def eval_application(args):
     for _, record in tqdm(dataset.iterrows()):
         if record['task'] == "金融翻译":
             prompt = record['instruction'].split('\n')[0]
-
             input = record['instruction'].split('\n')[2]
 
         elif record['task'] == '金融文本分类':
             prompt = record['instruction'].split('\n')[0]
-
             input = record['instruction'].split('\n')[1:]
             input="".join(input)
         elif record['task'] == '金融文本生成':
             prompt = record['instruction'].split('\n')[0]
             input = record['instruction'].split('\n')[1:]
+            input = "".join(input)
         elif record['task'] == '金融文本抽取':
             prompt = record['instruction'].split('\n')[0]
             input = record['instruction'].split('\n')[1:]
+            input = "".join(input)
 
         try:
             if args.request_type == "http":
@@ -56,8 +56,8 @@ def eval_application(args):
                 model_response = chat_with_model_hf(model, tokenizer, prompt)
             else:
                 raise ValueError("Invalid request type")
-        except Exception:
-                model_response = Exception
+        except Exception as e:
+                model_response = e
 
         responses.append(model_response)
 

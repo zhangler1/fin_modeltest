@@ -38,7 +38,7 @@ if __name__ == '__main__':
     args.eval_times=2
     args.start_time = datetime.now().strftime('%Y-%m-%d %H.%M')
     # availble task are "['金融文本分类', '金融翻译','金融文本生成','金融文本抽取']"
-    args.task = "金融文本生成"
+    args.task = "金融文本抽取"
     # availble sub_task are "['金融英中翻译', '金融中英翻译',]"
     args.sub_task = "金融中英翻译"
 
