@@ -32,10 +32,14 @@ def eval_application(args):
     for _, record in tqdm(dataset.iterrows()):
         if record['task'] == "金融翻译":
             prompt = record['instruction'].split('\n')[0]
+
             input = record['instruction'].split('\n')[2]
+
         elif record['task'] == '金融文本分类':
             prompt = record['instruction'].split('\n')[0]
+
             input = record['instruction'].split('\n')[1:]
+            input="".join(input)
         elif record['task'] == '金融文本生成':
             prompt = record['instruction'].split('\n')[0]
             input = record['instruction'].split('\n')[1:]
@@ -57,10 +61,9 @@ def eval_application(args):
 
         responses.append(model_response)
 
-
     os.makedirs(os.path.join(args.save_result_dir, args.model_name), exist_ok=True)
     result_path = os.path.join(args.save_result_dir, args.model_name,
-                               f"{args.model_name}_{args.datasetName}_{args.start_time}.json")
+                               f"{args.model_name}_{args.task}_{args.datasetName}_{args.start_time}.json")
     #result_path = os.path.join(args.save_result_dir, args.model_name,"{args.model_name}_{args.datasetName}_{args.start_time}.json")
 
     if not args.save_result_dir:
