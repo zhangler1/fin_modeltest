@@ -1,7 +1,6 @@
 import argparse
 import ast
 import json
-import os
 
 from torch.utils.hipify.hipify_python import meta_data
 
@@ -36,10 +35,10 @@ if __name__ == '__main__':
     args.request_type = "http"
     args.checkpoint_path="/home/llm/LLMs/Qwen1.5-1.8B"
     args.save_result_dir="modelResults"
-    args.eval_times=5
-    args.start_time = datetime.now().strftime('%Y-%m-%d %H:%M')
-    # availble sub_task are "['金融文本分类', '金融咨询', '金融翻译','金融文本生成','金融文本抽取']"
-    args.task = "金融文本分类"
+    args.eval_times=2
+    args.start_time = datetime.now().strftime('%Y-%m-%d %H.%M')
+    # availble task are "['金融文本分类', '金融翻译','金融文本生成','金融文本抽取']"
+    args.task = "金融文本抽取"
     # availble sub_task are "['金融英中翻译', '金融中英翻译',]"
     args.sub_task = "金融中英翻译"
 
@@ -60,8 +59,7 @@ if args.eval_type == 'qa':
 
             result=MeanVarianceDicts(results)
             result["metaData"]=metaData
-            os.makedirs(os.path.join(args.save_result_dir,args.model_name), exist_ok=True)
-            file_name = f"{args.save_result_dir}/{args.model_name}/{args.model_name}_{args.datasetName}_history.jsonl"
+            file_name = f"{args.model_name}_{args.datasetName}_history.jsonl"
             with open(file_name,"a")as f:
                 f.write(json.dumps(result,ensure_ascii=False) + '\n')
 
