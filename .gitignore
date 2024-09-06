@@ -4,4 +4,6 @@
 /modelResults/
 /.idea/
 /finDatasets/c_EVAL/downloads/downloads/
-/finDatasets/c_EVAL/downloads/
+/finDatasets/
+*__pycache__
+./idea
